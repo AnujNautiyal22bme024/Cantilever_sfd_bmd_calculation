@@ -1,3 +1,13 @@
+disp("Take downward force as +ve and upward force as -ve, this has been done as usually more problems with downward forces are there");
+
+% Asking if cantilever fixed from left or from right
+leftRight=input("Is cantilever fixed from LHS or from RHS: ","s");
+
+% Asking the units;
+unitLength=input("What is the unit of length: ","s");
+unitForce=input("What is the unit of force: ","s");
+unitMoment=[unitForce,unitLength];
+
 % Prompt the user to specify the length of the Cantilever
 CantLength = input('Enter the length of the Cantilever: ');
 
@@ -51,43 +61,121 @@ for i = 1:numConcLoads
     end
 end
 
-% Calculate the total shear force at each point along the beam
-totalShearForce = 0;
-x=linspace(0,CantLength,1000);            
-for i = 1:numConcLoads
-    totalShearForce = totalShearForce + ConcLoadValues(i) * (x>ConcLoadDistance(i));
-end
-for i = 1:numUdLoads
-    totalShearForce = totalShearForce + UdLoadValues(i)*(x-UdLoadDistance(i)).*(x>UdLoadDistance(i))-UdLoadValues(i)*(x-(UdLoadDistance(i)+UdLoadLength(i))).*(x>(UdLoadDistance(i)+UdLoadLength(i))) ;
-end
+if leftRight=='RHS'
+    % Finding normal reactions at fixed end
+    normalReaction=0;
+    for i=1:numConcLoads
+        normalReaction=normalReaction-ConcLoadValues(i);
+    end
+    for i=1:numUdLoads
+        normalReaction=normalReaction-(UdLoadValues(i))*(UdLoadLength(i));
+    end
+    disp(['The normal Reaction at fixed end is ', num2str(normalReaction) , unitForce]);
+    normalMomemt=0;
+    for i=1:numConcLoads
+        normalMomemt=normalMomemt+(ConcLoadValues(i))*(ConcLoadDistance(i));
+    end
+    for i=1:numUdLoads
+        normalMomemt=normalMomemt+(UdLoadValues(i))*(UdLoadLength(i))*(UdLoadDistance(i)+((UdLoadLength(i)/2)));
+    end
+    disp(['The normal Moment at fixed end is ', num2str(normalMomemt) , unitMoment]);
 
-%subplot(111);
-%plot(x,totalShearForce);
+    % Calculate the total shear force at each point along the beam
+    totalShearForce = 0;
+    x=linspace(0,CantLength,1000);            
+    for i = 1:numConcLoads
+        totalShearForce = totalShearForce - ConcLoadValues(i) * (x>ConcLoadDistance(i));
+    end
+    for i = 1:numUdLoads
+        totalShearForce = totalShearForce - UdLoadValues(i)*(x-UdLoadDistance(i)).*(x>UdLoadDistance(i))+UdLoadValues(i)*(x-(UdLoadDistance(i)+UdLoadLength(i))).*(x>(UdLoadDistance(i)+UdLoadLength(i))) ;
+    end
+    
+    %subplot(111);
+    %plot(x,totalShearForce);
+    
+    % Calculate the total bending moment at each point along the beam
+    totalBendingMoment = 0;
+    for i = 1:numConcLoads
+        totalBendingMoment = totalBendingMoment -ConcLoadValues(i).*(x-ConcLoadDistance(i)).*(x>ConcLoadDistance(i));
+    end
+    for i = 1:numUdLoads
+        totalBendingMoment = totalBendingMoment -((UdLoadValues(i))/2)*(x-UdLoadDistance(i)).^2.*(x>UdLoadDistance(i))+((UdLoadValues(i))/2)*(x-(UdLoadDistance(i)+UdLoadLength(i))).^2.*(x>(UdLoadDistance(i)+UdLoadLength(i)));
+    
+    end
 
-% Calculate the total bending moment at each point along the beam
-totalBendingMoment = 0;
-for i = 1:numConcLoads
-    totalBendingMoment = totalBendingMoment -ConcLoadValues(i).*(x-ConcLoadDistance(i)).*(x>ConcLoadDistance(i));
-end
-for i = 1:numUdLoads
-    totalBendingMoment = totalBendingMoment -((UdLoadValues(i))/2)*(x-UdLoadDistance(i)).^2.*(x>UdLoadDistance(i))+((UdLoadValues(i))/2)*(x-(UdLoadDistance(i)+UdLoadLength(i))).^2.*(x>(UdLoadDistance(i)+UdLoadLength(i)));
+    %Plot the Shear Force Diagram
+    figure;
+    subplot(2, 1, 1);
+    plot(x, totalShearForce, 'b-', 'LineWidth', 1.5);
+    title('Shear Force Diagram');
+    xlabel(['Beam Length (' unitLength ')']);;
+    ylabel(['Shear Force (' unitForce ')']);
+    grid on;
+    
+    %Plot the Bending Moment Diagram
+    subplot(2, 1, 2);
+    plot(x, totalBendingMoment, 'r-', 'LineWidth', 1.5);
+    title('Bending Moment Diagram');
+    xlabel(['Beam Length (' unitLength ')']);
+    ylabel(['Bending Moment (' unitMoment ')']);
+    grid on;
 
-end
+elseif leftRight=='LHS'
+    normalReaction=0;
+    for i=1:numConcLoads
+        normalReaction=normalReaction-ConcLoadValues(i);
+    end
+    for i=1:numUdLoads
+        normalReaction=normalReaction-(UdLoadValues(i))*(UdLoadLength(i));
+    end
+    disp(['The normal Reaction at fixed end is ', num2str(normalReaction), unitForce]);
+    normalMomemt=0;
+    for i=1:numConcLoads
+        normalMomemt=normalMomemt+(ConcLoadValues(i))*(ConcLoadDistance(i));
+    end
+    for i=1:numUdLoads
+        normalMomemt=normalMomemt+(UdLoadValues(i))*(UdLoadLength(i))*(UdLoadDistance(i)+((UdLoadLength(i)/2)));
+    end
+    disp(['The normal Moment at fixed end is ', num2str(normalMomemt), unitMoment]);
+    
+    % Calculate the total shear force at each point along the beam
+    totalShearForce =-normalReaction;
+    x=linspace(0,CantLength,1000);            
+    for i = 1:numConcLoads
+        totalShearForce = totalShearForce - ConcLoadValues(i) * (x>ConcLoadDistance(i));
+    end
+    for i = 1:numUdLoads
+        totalShearForce = totalShearForce - UdLoadValues(i)*(x-UdLoadDistance(i)).*(x>UdLoadDistance(i))+UdLoadValues(i)*(x-(UdLoadDistance(i)+UdLoadLength(i))).*(x>(UdLoadDistance(i)+UdLoadLength(i))) ;
+    end
 
+    % Calculate the total bending moment at each point along the beam
+    totalBendingMoment =-normalMomemt;
+    for i = 1:numConcLoads
+        totalBendingMoment = totalBendingMoment -ConcLoadValues(i).*(x-ConcLoadDistance(i)).*(x>ConcLoadDistance(i));
+    end
+    for i = 1:numUdLoads
+        totalBendingMoment = totalBendingMoment -((UdLoadValues(i))/2)*(x-UdLoadDistance(i)).^2.*(x>UdLoadDistance(i))+((UdLoadValues(i))/2)*(x-(UdLoadDistance(i)+UdLoadLength(i))).^2.*(x>(UdLoadDistance(i)+UdLoadLength(i)));
+    
+    end
 
-%Plot the Shear Force Diagram
-figure;
-subplot(2, 1, 1);
-plot(x, totalShearForce, 'b-', 'LineWidth', 1.5);
-title('Shear Force Diagram');
-xlabel('Beam Length (m)');
-ylabel('Shear Force (N)');
-grid on;
+    %Plot the Shear Force Diagram
+    figure;
+    subplot(2, 1, 1);
+    plot(x, totalShearForce, 'b-', 'LineWidth', 1.5);
+    title('Shear Force Diagram');
+    xlabel(['Beam Length (' unitLength ')']);;
+    ylabel(['Shear Force (' unitForce ')']);
+    grid on;
+    
+    %Plot the Bending Moment Diagram
+    subplot(2, 1, 2);
+    plot(x, totalBendingMoment, 'r-', 'LineWidth', 1.5);
+    title('Bending Moment Diagram');
+    xlabel(['Beam Length (' unitLength ')']);
+    ylabel(['Bending Moment (' unitMoment ')']);
+    grid on
 
-%Plot the Bending Moment Diagram
-subplot(2, 1, 2);
-plot(x, totalBendingMoment, 'r-', 'LineWidth', 1.5);
-title('Bending Moment Diagram');
-xlabel('Beam Length (m)');
-ylabel('Bending Moment (Nm)');
-grid on;
+else 
+    print('Please tell whether fixed end is LHS or RHS')
+
+end;
