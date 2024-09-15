@@ -44,7 +44,7 @@ MATLAB code to calculate and plot Shear Force Diagram (SFD) and Bending Moment D
 ## Example
 An example output for a cantilever beam with specific loads can be added here (e.g., screenshots or descriptions).
 
-![Book question and answer](./Images/cantilever_question_and_answer.png)
+![Book question and answer](./Images/Cantilever_question_and_answer.png)
 
 ![Working code example](./Images/cantilever_code_working.png)
 
